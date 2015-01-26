@@ -23,14 +23,9 @@ PLIST = {'CFBundleName': NAME,
          'CFBundleVersion': VERSION,
          'CFBundleExecutable': NAME,
          'CFBundleGetInfoString': INFO,
-         'CFBundleShortVersionString': re.search(r'\d\.\d', VERSION).group(0),
-         'NSHumanReadableCopyright': COPYRIGHT,
          'CFBundleIdentifier': IDENTIFIER,
-         'CFBundleDocumentTypes': [],
-         'CFBundleURLTypes': [],
-         'LSBackgroundOnly': False,
-         'LSUIElement': False,
-         'NSServices': []}
+         'CFBundleShortVersionString': re.search(r'\d\.\d', VERSION).group(0),
+         'NSHumanReadableCopyright': COPYRIGHT}
 
 APP = ['manami.py']
 
