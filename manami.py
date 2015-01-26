@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import os
@@ -17,8 +16,36 @@ RESOURCES = dict()
 RESOURCES['gfx'] = sdl2.ext.Resources(BASE_PATH, 'gfx')
 RESOURCES['sfx'] = sdl2.ext.Resources(BASE_PATH, 'sfx')
 
+# igual que en setup.py (para py2app)
+IDENTIFIER = 'com.creepypanda.games.manami'
+
+
+def apple_saved_state_disabler_hack(identifier):
+    """Prevent Mac OS >= 10.7 to restore windows state
+    https://github.com/VisTrails/VisTrails/blob/master/vistrails/run.py
+    """
+    import shutil
+    import platform
+
+    ss_base_path = '~/Library/Saved Application State'
+    defaults_cmd_1 = 'defaults write %s NSQuitAlwaysKeepsWindows -bool false'
+    defaults_cmd_2 = 'defaults write %s ApplePersistenceIgnoreState YES'
+
+    if platform.system() == 'Darwin':
+        release = platform.mac_ver()[0].split('.')
+        if len(release) >= 2:
+            major = int(release[0])
+            minor = int(release[1])
+            if major * 10 + minor >= 107:
+                ss_path = os.path.expanduser(os.path.join(ss_base_path, identifier + '.savedState'))
+                if os.path.exists(ss_path):
+                    shutil.rmtree(ss_path, ignore_errors=True)
+                os.system(defaults_cmd_1 % identifier)
+                os.system(defaults_cmd_2 % identifier)
+
 
 def main():
+    # callback para el cierre de aplicacion
     def close_all_things():
         Mix_FreeMusic(music)
         SDL_DestroyTexture(texture)
@@ -27,8 +54,11 @@ def main():
         Mix_CloseAudio()
         SDL_Quit()
 
-    # registramos el callback para el cierre de aplicacion
+    # registramos el callback ahora
     atexit.register(close_all_things)
+
+    # corregimos pifia al levantar ventana de python en OSX >= 10.7
+    apple_saved_state_disabler_hack(IDENTIFIER)
 
     # 0 - VARIABLES GLOBALES
     gameloop = True
@@ -45,11 +75,10 @@ def main():
     if 0 != SDL_Init(SDL_INIT_EVERYTHING):
         sys.exit(SDL_GetError())
 
-    if 0 != SDL_CreateWindowAndRenderer(1080, 720, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL,
+    if 0 != SDL_CreateWindowAndRenderer(1080, 720,
+                                        SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL,
                                         pointer(window), pointer(renderer)):
         sys.exit(SDL_GetError())
-
-    SDL_SetWindowTitle(window, b'Manami - Simple Game Skeleton for Python/SDL2')
 
     # 1.2 - SDL_IMAGE
     if 0 == IMG_Init(IMG_INIT_PNG):
@@ -72,6 +101,12 @@ def main():
     if music is None or 0 != Mix_PlayMusic(music, -1):
         sys.exit(Mix_GetError())
 
+    # levantamos la ventana justo antes de comenzar el gameloop
+    SDL_SetWindowTitle(window, b'Manami - Simple Game Skeleton for Python/SDL2')
+    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED)
+    SDL_ShowWindow(window)
+    SDL_RaiseWindow(window)
+
     # 2 - BUCLE DE JUEGO
     while gameloop:
         # 2.1 - PROCESA LA ENTRADA
@@ -88,8 +123,8 @@ def main():
         SDL_RenderPresent(renderer)
         SDL_Delay(10)
 
-        # 3 - FINALIZAR EL JUEGO
-        # usamos atexit para llamar al callback que cierra todo
+    # 3 - FINALIZAR EL JUEGO
+    # usamos atexit para llamar al callback que cierra todo
 
 
 if __name__ == "__main__":

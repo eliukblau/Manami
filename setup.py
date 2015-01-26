@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -16,7 +15,7 @@ ICON = 'app.icns'
 VERSION = '1.0.0'
 INFO = 'Manami - Simple Game Skeleton for Python/SDL2'
 COPYRIGHT = '© 2015 CreepyPanda Software'
-IDENTIFIER = 'com.creepypanda.games'
+IDENTIFIER = 'com.creepypanda.games.manami'
 
 PLIST = {'CFBundleName': NAME,
          'CFBundleIconFile': ICON,
@@ -24,13 +23,12 @@ PLIST = {'CFBundleName': NAME,
          'CFBundleExecutable': NAME,
          'CFBundleGetInfoString': INFO,
          'CFBundleIdentifier': IDENTIFIER,
-         'CFBundleShortVersionString': re.search(r'\d\.\d', VERSION).group(0),
+         'CFBundleShortVersionString': re.search(r'\d+\.\d+', VERSION).group(0),
          'NSHumanReadableCopyright': COPYRIGHT}
 
 APP = ['manami.py']
 
-DATA_FILES = [('', [ICON]),
-              ('', ['gfx',
+DATA_FILES = [('', ['gfx',
                     'sfx'])]
 
 INCLUDES = ['sdl2',
@@ -45,6 +43,7 @@ FRAMEWORKS = ['/Library/Frameworks/SDL2.framework',
 OPTIONS = {'argv_emulation': True,
            'frameworks': FRAMEWORKS,
            'includes': INCLUDES,
+           'iconfile': ICON,
            'plist': PLIST}
 
 setup(
