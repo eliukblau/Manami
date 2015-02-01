@@ -10,15 +10,6 @@ from sdl2 import *
 from sdl2.sdlimage import *
 from sdl2.sdlmixer import *
 
-BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-
-RESOURCES = dict()
-RESOURCES['gfx'] = sdl2.ext.Resources(BASE_PATH, 'gfx')
-RESOURCES['sfx'] = sdl2.ext.Resources(BASE_PATH, 'sfx')
-
-# igual que en setup.py (para py2app)
-IDENTIFIER = 'com.creepypanda.games.manami'
-
 
 def apple_saved_state_disabler_hack(identifier):
     """Prevent Mac OS >= 10.7 to restore windows state
@@ -28,8 +19,8 @@ def apple_saved_state_disabler_hack(identifier):
     import platform
 
     ss_base_path = '~/Library/Saved Application State'
-    defaults_cmd_1 = 'defaults write %s NSQuitAlwaysKeepsWindows -bool false'
-    defaults_cmd_2 = 'defaults write %s ApplePersistenceIgnoreState YES'
+    defaults_cmd_1 = '/usr/bin/defaults write %s ApplePersistenceIgnoreState YES'
+    defaults_cmd_2 = '/usr/bin/defaults write %s NSQuitAlwaysKeepsWindows -bool false'
 
     if platform.system() == 'Darwin':
         release = platform.mac_ver()[0].split('.')
@@ -37,14 +28,36 @@ def apple_saved_state_disabler_hack(identifier):
             major = int(release[0])
             minor = int(release[1])
             if major * 10 + minor >= 107:
-                ss_path = os.path.expanduser(os.path.join(ss_base_path, identifier + '.savedState'))
+                ss_path = os.path.expanduser(
+                    os.path.join(ss_base_path, identifier + '.savedState'))
                 if os.path.exists(ss_path):
                     shutil.rmtree(ss_path, ignore_errors=True)
-                os.system(defaults_cmd_1 % identifier)
+                os.system(defaults_cmd_1 % identifier)  # esta es la clave!
                 os.system(defaults_cmd_2 % identifier)
 
 
-def main():
+def get_base_path():
+    if getattr(sys, 'frozen', False):
+        # The application is frozen
+        datadir = os.path.abspath(os.environ['RESOURCEPATH'])  # para py2app!
+    else:
+        # The application is not frozen
+        datadir = os.path.dirname(os.path.abspath(__file__))
+
+    return datadir
+
+
+BASE_PATH = get_base_path()
+
+RESOURCES = dict()
+RESOURCES['gfx'] = sdl2.ext.Resources(BASE_PATH, 'gfx')
+RESOURCES['sfx'] = sdl2.ext.Resources(BASE_PATH, 'sfx')
+
+# igual que en setup.py (para py2app)
+IDENTIFIER = 'com.creepypanda.games.manami'
+
+
+def manami_main():
     # callback para el cierre de aplicacion
     def close_all_things():
         Mix_FreeMusic(music)
@@ -84,7 +97,8 @@ def main():
     if 0 == IMG_Init(IMG_INIT_PNG):
         sys.exit(IMG_GetError())
 
-    texture = IMG_LoadTexture(renderer, RESOURCES['gfx'].get_path('manami_logo.png').encode())
+    texture = IMG_LoadTexture(
+        renderer, RESOURCES['gfx'].get_path('manami_logo.png').encode())
     if texture is None:
         sys.exit(IMG_GetError())
 
@@ -102,8 +116,10 @@ def main():
         sys.exit(Mix_GetError())
 
     # levantamos la ventana justo antes de comenzar el gameloop
-    SDL_SetWindowTitle(window, b'Manami - Simple Game Skeleton for Python/SDL2')
-    SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED)
+    SDL_SetWindowTitle(
+        window, b'Manami - Simple Game Skeleton for Python/SDL2')
+    SDL_SetWindowPosition(
+        window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED)
     SDL_ShowWindow(window)
     SDL_RaiseWindow(window)
 
@@ -128,4 +144,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    manami_main()

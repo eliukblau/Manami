@@ -26,7 +26,7 @@ PLIST = {'CFBundleName': NAME,
          'CFBundleShortVersionString': re.search(r'\d+\.\d+', VERSION).group(0),
          'NSHumanReadableCopyright': COPYRIGHT}
 
-APP = ['manami.py']
+APP = ['main.py']
 
 DATA_FILES = [('', ['gfx',
                     'sfx'])]
